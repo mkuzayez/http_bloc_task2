@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http_bloc_task2/business_logic/cubit/unsplash_cubit.dart';
-import 'package:http_bloc_task2/home_screen.dart';
-import 'package:http_bloc_task2/injection.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:http_bloc_task2/data/models/image/image_model.dart';
+import 'package:http_bloc_task2/routes.dart';
 
-void main() {
-  initGetIt();
-  runApp(const MyApp());
+Future<void> main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(ImageObjectAdapter());
+  Hive.registerAdapter(UserAdapter());
+  Hive.registerAdapter(LinksAdapter());
+  Hive.registerAdapter(UrlsAdapter());
+
+  await Hive.openBox<List>('favoriteItems');
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AppRouter appRouter = AppRouter();
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +28,18 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'API Task',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(
+            255,
+            48,
+            63,
+            159,
+          ),
+        ),
+        fontFamily: 'SF',
       ),
-      home: BlocProvider(
-        create: (context) => inject<UnsplashCubit>(),
-        child: const HomeScreen(),
-      ),
+      onGenerateRoute: appRouter.generateRoute,
+      initialRoute: '/',
     );
   }
 }
